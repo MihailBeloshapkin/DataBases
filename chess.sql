@@ -73,7 +73,7 @@ AS $$
     END
 $$
 
-call 
+call start_game(); 
 
 
 --1.
@@ -87,3 +87,21 @@ SELECT class, count(*) AS count FROM chessman GROUP BY class;
 
 --4.
 SELECT id FROM Chessboard LEFT JOIN Chessman ON chessman_id = id WHERE color = 'white' AND class = 'pawn';
+
+--5.
+SELECT class, color FROM Chessman LEFT JOIN Chessboard ON chessman_id = id WHERE ascii(x) - ascii('A') = y - 1;
+
+-- 6.
+SELECT color, count(*) AS count FROM chessman LEFT JOIN Chessboard ON id = chessman_id GROUP BY color;
+
+--7. 
+SELECT class FROM Chessman LEFT JOIN Chessboard ON id = chessman_id WHERE color = 'black' GROUP BY class;
+                                                                                                                            
+--8.
+SELECT class, count(*) AS count FROM Chessman LEFT JOIN Chessboard ON id = chessman_id WHERE color = 'black' GROUP BY class;
+
+--9. 
+SELECT class FROM Chessman LEFT JOIN Chessboard ON id = chessman_id GROUP BY class HAVING count(*) >= 2;
+
+--10.
+SELECT class 
