@@ -61,3 +61,29 @@ AS $$
 		END LOOP;
 	END
 $$
+
+CREATE OR REPLACE PROCEDURE start_game ()
+LANGUAGE plpgsql
+AS $$
+    BEGIN
+	TRUNCATE Chessman CASCADE;
+	TRUNCATE Chessboard;
+        call initialize_figures();
+        call initialize_board();
+    END
+$$
+
+call 
+
+
+--1.
+SELECT count(*) FROM Chessboard; 
+
+--2. 
+SELECT id FROM Chessman WHERE substring(class, 1, 1) = 'k';
+
+--3.
+SELECT class, count(*) AS count FROM chessman GROUP BY class;
+
+--4.
+SELECT id FROM Chessboard LEFT JOIN Chessman ON chessman_id = id WHERE color = 'white' AND class = 'pawn';
