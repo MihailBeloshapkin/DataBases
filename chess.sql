@@ -103,5 +103,4 @@ SELECT class, count(*) AS count FROM Chessman LEFT JOIN Chessboard ON id = chess
 --9. 
 SELECT class FROM Chessman LEFT JOIN Chessboard ON id = chessman_id GROUP BY class HAVING count(*) >= 2;
 
---10.
-SELECT class 
+--10.        
