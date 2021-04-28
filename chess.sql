@@ -103,4 +103,50 @@ SELECT class, count(*) AS count FROM Chessman LEFT JOIN Chessboard ON id = chess
 --9. 
 SELECT class FROM Chessman LEFT JOIN Chessboard ON id = chessman_id GROUP BY class HAVING count(*) >= 2;
 
---10.        
+--10.
+WITH X AS (SELECT color, COUNT(Chessman) count FROM Chessman LEFT JOIN Chessboard on id = chessman_id GROUP BY color)
+SELECT * FROM X WHERE count = (SELECT MAX(count) FROM X);     
+
+--11.
+WITH coords AS (SELECT x, y FROM Chessman LEFT JOIN Chessboard ON id = chessman_id WHERE class = 'rook')
+SELECT id, class FROM Chessman, Chessboard, coords 
+WHERE id = chessman_id 
+AND (Chessboard.x = coords.x OR Chessboard.y = coords.y)
+
+--12.
+SELECT color FROM Chessman 
+LEFT JOIN Chessboard ON id = chessman_id 
+GROUP BY class, color 
+HAVING class = 'pawn' AND count(*) = 8
+
+
+--13. (With deletion to commit changes)
+SELECT * INTO newChessboard FROM Chessboard;
+DELETE FROM newChessboard WHERE x = 'A' AND y = 2;
+ 
+SELECT DISTINCT id, class, color FROM Chessman, Chessboard, newChessboard 
+WHERE (exists(SELECT * FROM Chessboard WHERE id = Chessboard.chessman_id)
+		 AND NOT exists(SELECT * FROM newChessboard WHERE id = newChessboard.chessman_id))
+	  OR 
+	  (id = Chessboard.chessman_id 
+	   AND id = newChessboard.chessman_id
+	   AND (Chessboard.x <> newChessboard.x OR Chessboard.y <> newChessboard.y)
+	  );
+
+
+
+--14.
+WITH blackKing AS (SELECT x, y FROM Chessman 
+				   LEFT JOIN Chessboard ON id = chessman_id 
+				   WHERE class = 'king' AND color = 'black')
+
+
+SELECT id, class, color FROM Chessman, Chessboard, blackKing
+WHERE 
+id = chessman_id
+AND abs(Chessboard.y - blackKing.y) BETWEEN 0 AND 2
+AND abs(ascii(Chessboard.x) - ascii(blackKing.x)) BETWEEN 0 AND 2
+AND class <> 'king';
+
+
+--15.
