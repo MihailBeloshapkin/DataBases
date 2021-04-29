@@ -148,5 +148,11 @@ AND abs(Chessboard.y - blackKing.y) BETWEEN 0 AND 2
 AND abs(ascii(Chessboard.x) - ascii(blackKing.x)) BETWEEN 0 AND 2
 AND class <> 'king';
 
-
 --15.
+WITH whiteKing AS (SELECT * FROM Chessman LEFT JOIN Chessboard ON id = chessman_id 
+				   WHERE color = 'white' AND class = 'king')
+, distanceTable AS (SELECT Chessman.id, Chessman.class, Chessman.color, abs(ascii(Chessboard.x) - ascii(whiteKing.x)) + abs(Chessboard.y - whiteKing.y) AS distance
+					FROM Chessman, Chessboard, whiteKing 
+					WHERE Chessman.id = Chessboard.chessman_id AND Chessman.id <> whiteKing.id)
+SELECT * FROM distanceTable WHERE distanceTable.distance = (SELECT MIN(distanceTable.distance) FROM distanceTable);
+
