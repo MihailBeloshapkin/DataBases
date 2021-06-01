@@ -44,6 +44,14 @@ CREATE TABLE ShowRoom(
 	PRIMARY KEY (Name,car_id)
 );
 
+INSERT INTO Showroom VALUES
+('Showroom 1', 'm221mm98'),
+('Showroom 2', 'a234aa178'),
+('Showroom 3', 'r175ct777');
+
+INSERT INTO NewAutoInfo VALUES
+('Toyota', 'Camry', '40', 270, 'Business', 'white, black', '3.5 V6', 35000);
+
 --1.
 SELECT DISTINCT Mark FROM NewAutoInfo WHERE class = 'Sport Cars'; 
 
@@ -58,3 +66,27 @@ WHERE NOT EXISTS (SELECT * FROM UsedAutoInfo
 				  WHERE UsedAutoInfo.Mark = NewAutoInfo.Mark 
 				  AND UsedAutoInfo.Model = NewAutoInfo.Model
 		          AND UsedAutoInfo.Generation = NewAutoInfo.Generation);
+
+
+INSERT INTO UsedAutoInfo VALUES
+('u589hk45', 'Toyota', 'Camry', '40', '3.5 V6', 27000, 2008, 2, 10);
+
+
+--2.
+SELECT Mark, Model, Geleration FROM UsedAutoInfo WHERE year = 2008;
+
+
+--7. 
+with A AS (select NewAutoInfo.Mark, NewAutoInfo.Model, NewAutoInfo.Generation, NewAutoInfo.Equipment, price * 100 / originprice AS delta 
+from NewAutoInfo
+JOIN UsedAutoInfo 
+ON newAutoInfo.mark = usedAutoInfo.mark 
+and newAutoInfo.Model = usedAutoInfo.model 
+AND newAutoInfo.Generation = UsedAutoInfo.Generation
+AND NewAutoInfo.Equipment = UsedAutoInfo.Equipment)
+
+SELECT Mark, Model, Generation, Equipment from A where delta < 80;
+
+-- ?
+with A AS (select Mark, Model, OriginPrice, NewAutoInfo.class FROM NewAutoInfo JOIN Class ON newautoinfo.class = Class.class)
+SELECT class, avg(OriginPrice) AS Mid FROM A GROUP BY class;
