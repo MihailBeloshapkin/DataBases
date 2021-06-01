@@ -54,6 +54,8 @@ insert into info(info_id, mark, model, gen, eq, power, class, price) values
 (8, 'Lada', 'Vesta', '1 gen', 'comfort+', 125, 'Econom', 13500),
 (9, 'Mercedes', 'S-classe', 'w222', 'avangard', 390, 'Luxury', 214000);
 
+insert into info(info_id, mark, model, gen, eq, power, class, price) values
+(10, 'BMW', '5 Series', 'f10', 'classic', 450, 'Sport', 120000);
 
 insert into usedauto(usedauto_id, discription, newprice, ownerscount, condition, year) values
 (1, 6, 10000, 1, 9, 2017), 
@@ -68,11 +70,33 @@ select distinct mark, model from info where class = 'Sport';
 with a as (select * from info join usedauto on info.info_id = usedauto.discription)
 select mark, model from a where year = 2008;
 
+--4.
+with a as (select mark from info group by class, mark having class = 'Luxury'),
+     b as (select mark from info group by class, mark having class = 'SUV')
+select * from a where exists(select * from b where a.mark = b.mark);
+
 --6.
 select mark, model, gen from info where not exists(select * from usedauto
     where info_id = usedauto.discription);
 
+--9.
+select class, avg(price) as avgprice, sum(case class when info.class then 1 else 0 end) from info
+group by class
+order by avgprice desc;
 
+--12
+with a as (select * from info join usedauto on info.info_id = usedauto.discription)
+select sum(case Mark when 'Toyota' then 1 else 0 end) * 100.0 / count(*) from a;
+
+--11
+with a as (select mark from info group by class, mark having class = 'Luxury'),
+     b as (select mark from info group by class, mark having class = 'SUV')
+select * from a where not exists(select * from b where a.mark = b.mark);
+
+--10.
+with a as (select * from info join usedauto on info.info_id = usedauto.discription)
+, b as (select max(newprice) * 1.0 / min(newprice) as delta, mark, model from a group by mark, model)
+select mark, model from b where delta > 1.1;
 
 create or replace function GetMinMax()
 returns table(
