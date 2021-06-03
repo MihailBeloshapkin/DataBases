@@ -299,3 +299,21 @@ insert into usedauto(usedauto_id, discription, newprice, ownerscount, condition,
 
 insert into showroom(name, car_id) VALUES
 ('Showroom 1', 5);
+         
+
+create or replace function insertUsed() returns trigger as $insert_used_trigger$
+    begin
+        insert into car(id, condition) VALUES (new.usedauto_id, 'used');
+        return new;
+    end;
+$insert_used_trigger$ LANGUAGE plpgsql;
+
+create trigger insertUsedTrigger
+
+before insert
+on usedauto for each row
+    begin
+    insert into car(id, condition) values )(new.usedauto_id, 'used');
+    end;
+
+
