@@ -9,7 +9,7 @@ create table info(
 );
 
 create table usedAuto(
-    usedAuto_id integer primary key  not null,
+    usedAuto_id integer references car(id) primary key  not null,
     discription integer references info(info_id),
     newPrice integer NOT NULL check ( newPrice > 0 ),
     ownersCount integer check ( ownersCount > 0 ),
@@ -79,6 +79,14 @@ select * from a where exists(select * from b where a.mark = b.mark);
 select mark, model, gen from info where not exists(select * from usedauto
     where info_id = usedauto.discription);
 
+select min(newprice) * 1.0 / price as delta, mark, model from usedauto join info on (usedauto.discription = info.info_id)
+group by mark, model, price;
+
+--7.
+select min(newprice) * 1.0 / price as delta, mark, model, price
+from usedauto join info on (usedauto.discription = info.info_id)
+group by mark, model, price;
+
 --9.
 select class, avg(price) as avgprice, sum(case class when info.class then 1 else 0 end) from info
 group by class
@@ -98,34 +106,11 @@ with a as (select * from info join usedauto on info.info_id = usedauto.discripti
 , b as (select max(newprice) * 1.0 / min(newprice) as delta, mark, model from a group by mark, model)
 select mark, model from b where delta > 1.1;
 
-create or replace function GetMinMax()
-returns table(
-    class char(20),
-    minMark char(20),
-    minModel char(20),
-    minPrice integer,
-    maxMark char(20),
-    maxModel char(20),
-    maxPrice integer
-             )
-language plpgsql as
-$$
-    begin
-        with minData as (select class, min(price) as minPrice from info group by class)
-        with maxData as (select class, max(price) as minPrice from info group by class)
-        select mark, model, minPrice from info join minData on (minPrice = price and minData.class = info.class)
-    end;
-    $$;
 
+--13
+with a as (select mark, model, class, sum(case class when usedautosdata.class then 1 else 0 end) as count from usedautosdata group by mark, model, class)
+select class, max(count) as maxCount, mark, model from a group by class, mark, model;
 
-with minData as (select class, min(price) as minPrice from info group by class)
-, maxData as (select class, max(price) as maxPrice from info group by class)
-, minAutos as (select info.class, info.mark as minMark, info.model as minModel, minPrice from info join minData
-    on (info.class = minData.class AND info.price = minData.minPrice))
-, maxAutos as (select info.class, info.mark as maxMark, info.model as maxModel, maxPrice from info join maxData
-    on (info.class = maxData.class AND info.price = maxData.maxPrice))
-select minAutos.class, minMark, minModel, minPrice, maxMark, maxModel, maxPrice
-from minAutos join maxAutos on (minAutos.class = maxAutos.class);
 
 -- view 1.
 create or replace view GetMinMax
@@ -140,3 +125,26 @@ from minAutos join maxAutos on (minAutos.class = maxAutos.class);
 
 
 
+select avg(newprice) * 100.0 / price as delta, mark, model, price
+from usedauto join info on (usedauto.discription = info.info_id)
+group by mark, model, price
+order by delta desc;
+
+
+create table car(
+    id integer primary key not null,
+    condition char(5) check (condition in ('new', 'used'))
+);
+
+create table newAuto(
+    newAuto_id integer references car(id) primary key not null,
+    discription integer references info(info_id) not null,
+    newPrice integer check (newPrice > 0)
+);
+
+insert into car(id, condition) values
+(1, 'used'), (2, 'used'), (3, 'used'), (4, 'used');
+
+
+create or replace view usedAutosData
+as select * from info join usedauto on info.info_id = usedauto.discription;
