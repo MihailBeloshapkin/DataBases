@@ -99,6 +99,17 @@ with a as (select mark from info group by class, mark having class = 'Luxury'),
      b as (select mark from info group by class, mark having class = 'SUV')
 select * from a where exists(select * from b where a.mark = b.mark);
 
+--5.
+with a as (select mark, name from showroomCars group by mark, name)
+select name, count(mark) from a group by name having count(mark) > 2;
+
+--8.
+--select distinct name, min(price) from showroomcars where class = 'SUV' and price < 30000;
+select name, min(price) from showroomcars
+group by name
+having exists(select * from showroomcars where class = 'SUV')
+and min(price) < 30000;
+
 --6.
 select mark, model, gen from info where not exists(select * from usedauto
     where info_id = usedauto.discription);
@@ -241,3 +252,50 @@ create trigger gen_trigger after insert on info for each row execute procedure u
 
 insert into info(info_id, mark, model, gen, eq, power, class, price)  values
 (11, 'Toyota', 'Camry', 'v50', 'elegance', 230, 'Business', 31500);
+
+
+create table showroom(
+    name char(20) not null,
+    car_id integer references car(id) not null,
+    unique (car_id)
+);
+
+insert into showroom(name, car_id) values 
+('Showroom 1', 1), ('Showroom 1', 4), ('Showroom 1', 7);
+
+create or replace view showRoomData
+as select * from showroom join car on showroom.car_id = car.id;
+
+
+-- view for showroom cars.
+create or replace view showroomCars as
+with a as (select mark, model, newprice as price, class, car.condition, usedauto_id as id
+from usedautosdata join car on usedauto_id = car.id
+union all select mark, model, newprice as price, class, car.condition, newauto_id as id
+from newautosdata join car on newauto_id = car.id)
+select * from a join showroom on a.id = showroom.car_id;
+
+create or replace function idGenerator()
+returns integer
+language plpgsql as
+$$
+    declare MaxId1 integer default 0;
+    declare MaxId2 integer default 0;
+    begin
+        select max(usedauto_id) into MaxId1 from usedauto;
+        select max(newauto_id) into MaxId2 from newauto;
+        if MaxId1 > MaxId2 then
+            return MaxId1 + 1;
+        else
+            return MaxId2 + 1;
+        end if;
+    end;
+$$;
+
+
+insert into usedauto(usedauto_id, discription, newprice, ownerscount, condition, year) values
+(idgenerator(), 10, 21300, 2, 4, 2016), (idgenerator(), 8, 9800, 2, 8, 2017);
+
+
+insert into showroom(name, car_id) VALUES
+('Showroom 1', 5);
