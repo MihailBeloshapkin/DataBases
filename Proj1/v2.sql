@@ -63,12 +63,36 @@ insert into usedauto(usedauto_id, discription, newprice, ownerscount, condition,
 (3, 2, 2000, 4, 7, 2008),
 (4, 5, 10000, 2, 8, 2008);
 
+insert into usedauto(usedauto_id, discription, newprice, ownerscount, condition, year) values
+(5, 4, 15000, 4, 5, 2007),
+(6, 4, 15500, 3, 4, 2008),
+(7, 3, 30000, 5, 4, 1998), (8, 7, 9000, 1, 8, 2017),
+(9, 7, 9500, 2, 5, 2016),
+(10, 7, 5700, 4, 5, 2015);	
+
+
+insert into car(id, condition) values
+(5, 'used'),
+(6, 'used'),
+(7, 'used'),
+(8, 'used'),
+(9, 'used'),
+(10, 'used'),
+(11, 'new'),
+(12, 'new');
+
+
+
+
 --1.
 select distinct mark, model from info where class = 'Sport';
 
 --2.
 with a as (select * from info join usedauto on info.info_id = usedauto.discription)
 select mark, model from a where year = 2008;
+
+--3
+select mark from usedautosdata group by mark having max(year) < 2008;
 
 --4.
 with a as (select mark from info group by class, mark having class = 'Luxury'),
@@ -142,9 +166,35 @@ create table newAuto(
     newPrice integer check (newPrice > 0)
 );
 
+insert into newauto(newauto_id, discription, newprice) VALUES
+(11, 7, 11700), (12, 9, 190000);
+
 insert into car(id, condition) values
 (1, 'used'), (2, 'used'), (3, 'used'), (4, 'used');
 
 
 create or replace view usedAutosData
 as select * from info join usedauto on info.info_id = usedauto.discription;
+
+create or replace view newAutosData
+as select * from newauto join info on (newauto.discription = info.info_id);
+
+create or replace function Alternatives(id integer)
+returns table(
+    alternativeMark char(20),
+    alternativeModel char(20),
+    delta integer
+    )
+language plpgsql as
+    $$
+    begin
+        return query
+            with var as (select * from newautosdata where newautosdata.newauto_id = id)
+            select usedautosdata.mark,
+                   usedautosdata.model,
+                   abs(usedautosdata.newprice - var.newprice) as delta
+            from usedautosdata, var
+            order by delta
+            fetch first 10 rows only;
+    end;
+    $$;
