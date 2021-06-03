@@ -215,6 +215,26 @@ create or replace function updatePrice() returns trigger as $gen_trigger$
 $gen_trigger$ LANGUAGE plpgsql;
 
 
+create or replace function updatePrice() returns trigger as $gen_trigger$
+    begin
+        if new is not null then
+            if exists(select * from info where new.mark = mark
+                and new.model = model and new.gen = gen)
+                then
+                return new;
+            else
+                with prevGeneration as (select usedauto_id as id from usedautosdata
+                    where mark = new.mark and model = new.model)
+
+                update usedauto
+                set newprice = usedauto.newprice * 0.95
+                where exists(select * from prevGeneration where prevGeneration.id = usedauto.usedauto_id);
+                return new;
+            end if;
+        end if;
+    end;
+$gen_trigger$ LANGUAGE plpgsql;
+
 
 create trigger gen_trigger after insert on info for each row execute procedure updateprice();
 
