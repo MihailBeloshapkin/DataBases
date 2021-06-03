@@ -198,3 +198,26 @@ language plpgsql as
             fetch first 10 rows only;
     end;
     $$;
+
+
+create or replace function updatePrice() returns trigger as $gen_trigger$
+    begin
+        if new is not null then
+            with prevGeneration as (select usedauto_id as id from usedautosdata
+                where mark = new.mark and model = new.model)
+
+            update usedauto
+            set newprice = usedauto.newprice * 0.95
+            where exists(select * from prevGeneration where prevGeneration.id = usedauto.usedauto_id);
+            return new;
+        end if;
+    end;
+$gen_trigger$ LANGUAGE plpgsql;
+
+
+
+create trigger gen_trigger after insert on info for each row execute procedure updateprice();
+
+
+insert into info(info_id, mark, model, gen, eq, power, class, price)  values
+(11, 'Toyota', 'Camry', 'v50', 'elegance', 230, 'Business', 31500);
